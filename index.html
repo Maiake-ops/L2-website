@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>L2: a minimal Linux system</title>
+  <meta name="description" content="L2 is a minimal Linux distribution built from scratch: a freestanding init, a static musl userspace and a 9.12 MB image that boots to a shell in 16 MiB of RAM.">
+  <meta name="theme-color" content="#f5f7f2">
+  <meta property="og:title" content="L2: a minimal Linux system">
+  <meta property="og:description" content="A from-scratch Linux distribution that boots to a shell in 16 MiB of memory.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/l2fetch-logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@0..1&family=Roboto+Flex:opsz,wght,wdth@8..144,300..900,75..125&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="boot-screen" id="bootScreen" role="status" aria-live="polite">
+    <div class="boot-screen-inner">
+      <img class="boot-logo" src="assets/l2fetch-logo.svg" alt="L2">
+      <p class="boot-heading">L2 system</p>
+      <pre class="boot-log"><span>[  OK  ]</span> document parsed
+<span>[  OK  ]</span> styles applied
+<span id="bootAssets">[ WAIT ]</span> waiting for assets</pre>
+      <div class="boot-state-row">
+        <span class="loading-morph" aria-hidden="true"></span>
+        <p class="boot-state" id="bootState">Preparing page…</p>
+      </div>
+      <div class="boot-progress" role="progressbar" aria-label="Preparing L2 website" aria-valuetext="Loading">
+        <svg viewBox="0 0 240 12" aria-hidden="true">
+          <path class="wave-track" d="M2 6 Q12 1 22 6 T42 6 T62 6 T82 6 T102 6 T122 6 T142 6 T162 6 T182 6 T202 6 T222 6 T238 6"/>
+          <g class="wave-motion"><path class="wave-active" d="M2 6 Q12 1 22 6 T42 6 T62 6 T82 6 T102 6 T122 6 T142 6 T162 6 T182 6 T202 6 T222 6 T238 6"/><path class="wave-active" transform="translate(240 0)" d="M2 6 Q12 1 22 6 T42 6 T62 6 T82 6 T102 6 T122 6 T142 6 T162 6 T182 6 T202 6 T222 6 T238 6"/></g>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <noscript><style>.boot-screen { display: none !important; }</style></noscript>
+
+  <a class="skip-link" href="#overview">Skip to content</a>
+
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <header class="topbar" id="topbar">
+    <a class="wordmark" href="#top">
+      <img class="wordmark-logo" src="assets/l2fetch-logo.svg" alt="L2">
+      <span class="wordmark-label">minimal linux</span>
+    </a>
+    <div class="topbar-right">
+      <nav class="nav" aria-label="Sections">
+          <a href="#specification"><span class="material-symbols-rounded" aria-hidden="true">tune</span><span class="nav-label">Specification</span></a>
+          <a href="#architecture"><span class="material-symbols-rounded" aria-hidden="true">account_tree</span><span class="nav-label">Architecture</span></a>
+          <a href="#start"><span class="material-symbols-rounded" aria-hidden="true">terminal</span><span class="nav-label">Getting started</span></a>
+      </nav>
+      <p class="section-index" aria-hidden="true">
+        <span id="sectionIndex">01</span><span class="slash">/</span><span id="sectionTotal">09</span>
+      </p>
+      <button class="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+        <span class="material-symbols-rounded" aria-hidden="true">dark_mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="content">
+
+      <section class="section section--bare hero" id="top" aria-labelledby="hero-title">
+        <p class="eyebrow"><span class="num">01</span> Linux distribution · x86_64</p>
+        <h1 id="hero-title"><img class="hero-logo" src="assets/l2fetch-logo.svg" alt="L2"></h1>
+        <p class="lede hero-lede">A minimal Linux system, built from scratch to boot to a shell in 16&nbsp;MiB of memory.</p>
+        <div class="hero-actions" aria-label="Explore L2">
+          <a class="action action--primary" href="#start">Run it in a VM <span aria-hidden="true">↗</span></a>
+          <a class="action action--secondary" href="#specification">Explore the specs</a>
+        </div>
+        <p class="hero-status"><span aria-hidden="true"></span> QEMU verified <span class="status-divider">·</span> BIOS + UEFI</p>
+        <p class="hero-hardware">For x86_64 PCs: boot from USB or optical media, then install to a local disk.</p>
+        <dl class="hero-meta">
+          <div><dt>Image</dt><dd>9.12&nbsp;MB</dd></div>
+          <div><dt>Idle memory</dt><dd>15.49&nbsp;MiB</dd></div>
+          <div><dt>Init</dt><dd>rcl2</dd></div>
+          <div><dt>Userspace</dt><dd>static musl</dd></div>
+        </dl>
+        <p class="cue" aria-hidden="true">Scroll</p>
+      </section>
+
+      <section class="section" id="overview" aria-labelledby="overview-title" tabindex="-1">
+        <p class="eyebrow"><span class="num">02</span> Overview</p>
+        <h2 id="overview-title">Small by construction.</h2>
+        <p class="lede">L2 is a compact Linux distribution assembled around a single supervisor and a static userspace. It boots from read-only media, pivots into a 107&nbsp;KB initramfs, and keeps in memory only what the running system needs.</p>
+        <div class="principles">
+          <article class="principle">
+            <h3>One supervisor</h3>
+            <p>rcl2 runs as PID&nbsp;1 and stays resident. There is no service manager layered above it and no second init to replace it.</p>
+          </article>
+          <article class="principle">
+            <h3>Static by default</h3>
+            <p>The shell, utilities, package manager and system tooling are static musl binaries. gcompat covers prebuilt glibc programs.</p>
+          </article>
+          <article class="principle">
+            <h3>Measured, not assumed</h3>
+            <p>Every figure on this page comes from the project's measured specification, collected on QEMU&nbsp;TCG with standard virtual hardware.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="specification" aria-labelledby="spec-title">
+        <p class="eyebrow"><span class="num">03</span> Specification</p>
+        <h2 id="spec-title">Measured specification</h2>
+        <p class="lede">Boot and memory figures were collected under QEMU TCG with E1000 networking, a standard VGA adapter and a static musl userspace.</p>
+        <div class="spec-grid">
+          <table>
+            <caption>System</caption>
+            <tbody>
+              <tr><th scope="row">Init</th><td>rcl2, freestanding PID&nbsp;1</td></tr>
+              <tr><th scope="row">Bootloader</th><td>Limine, BIOS and UEFI</td></tr>
+              <tr><th scope="row">Shell and utilities</th><td>dash, minibox</td></tr>
+              <tr><th scope="row">C library</th><td>musl; gcompat 1.1.0</td></tr>
+              <tr><th scope="row">Package manager</th><td>l2pm (.l2pm, .l2p)</td></tr>
+              <tr><th scope="row">Live root</th><td>read-only, 107&nbsp;KB pivot initramfs</td></tr>
+            </tbody>
+          </table>
+          <table>
+            <caption>Images and memory</caption>
+            <tbody>
+              <tr><th scope="row">ISO image</th><td>9,123,840&nbsp;B (9.12&nbsp;MB)</td></tr>
+              <tr><th scope="row">Installed payload</th><td>7,082,129&nbsp;B (7.08&nbsp;MB)</td></tr>
+              <tr><th scope="row">Idle memory</th><td>15.49&nbsp;MiB installed<br>15.39&nbsp;MiB live</td></tr>
+              <tr><th scope="row">Free at idle</th><td>~520&nbsp;KiB installed<br>~620&nbsp;KiB live</td></tr>
+              <tr><th scope="row">Tested allocation</th><td>16&nbsp;MiB</td></tr>
+              <tr><th scope="row">Recommended launcher</th><td>32&nbsp;MiB BIOS<br>128&nbsp;MiB UEFI</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Idle figures include the kernel and reserved memory. The kernel profile uses a single CPU and reduced hardening. The live image boots in BIOS and UEFI modes and includes a disk installer. Real-machine compatibility has not yet been verified; under 1&nbsp;MiB remains available to applications at idle.</p>
+      </section>
+
+      <section class="section" id="architecture" aria-labelledby="arch-title">
+        <p class="eyebrow"><span class="num">04</span> Architecture</p>
+        <h2 id="arch-title">One binary, two cores.</h2>
+        <p class="lede">rcl2 is the init. It starts userspace as PID&nbsp;1, supervises it, and remains the only resident process of its kind.</p>
+        <div class="arch-grid">
+          <article>
+            <h3>C core</h3>
+            <p>Raw syscalls through <code>syscall(2)</code>: fork and exec, wait and reap, signals, mounts, console and <code>reboot(2)</code>. No libc is linked.</p>
+          </article>
+          <article>
+            <h3>Rust core</h3>
+            <p>A <code>#![no_std]</code> core with no external crates. It parses <code>/etc/rcl2.conf</code>, the kernel command line and <code>/proc/self/statm</code>.</p>
+          </article>
+          <article>
+            <h3>Shared ABI</h3>
+            <p>A pinned <code>#[repr(C)]</code> contract between both cores. Layout assertions are compiled into C and Rust and checked from both sides.</p>
+          </article>
+          <article>
+            <h3>Drop-in init</h3>
+            <p>Replaces the original <code>script/init/init.c</code> with the same mounts, console wording and <code>L2#</code> prompt. <code>l2.rescue=1</code> opens a rescue shell.</p>
+          </article>
+        </div>
+        <div class="flow-wrap">
+          <svg class="flow" viewBox="0 0 880 132" role="img" aria-labelledby="flow-title flow-desc">
+            <title id="flow-title">L2 boot flow</title>
+            <desc id="flow-desc">Limine loads a 107 kilobyte pivot initramfs, which mounts the read-only root and executes rcl2 as PID 1. rcl2 starts the console shell.</desc>
+            <defs>
+              <marker id="flow-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0 0 L8 4 L0 8 Z" fill="var(--primary)"></path>
+              </marker>
+            </defs>
+            <g>
+              <rect x="10" y="22" width="150" height="58" rx="10"></rect>
+              <text x="85" y="46" text-anchor="middle">Limine</text>
+              <text class="sub" x="85" y="64" text-anchor="middle">BIOS · UEFI</text>
+
+              <rect x="186" y="22" width="150" height="58" rx="10"></rect>
+              <text x="261" y="46" text-anchor="middle">initramfs</text>
+              <text class="sub" x="261" y="64" text-anchor="middle">107 KB pivot</text>
+
+              <rect x="362" y="22" width="150" height="58" rx="10"></rect>
+              <text x="437" y="46" text-anchor="middle">pivot_root</text>
+              <text class="sub" x="437" y="64" text-anchor="middle">read-only root</text>
+
+              <rect class="accent" x="538" y="22" width="150" height="58" rx="10"></rect>
+              <text x="613" y="46" text-anchor="middle">rcl2</text>
+              <text class="sub" x="613" y="64" text-anchor="middle">PID 1</text>
+
+              <rect x="714" y="22" width="150" height="58" rx="10"></rect>
+              <text x="789" y="46" text-anchor="middle">shell</text>
+              <text class="sub" x="789" y="64" text-anchor="middle">serial · VT</text>
+
+              <line x1="160" y1="51" x2="180" y2="51" marker-end="url(#flow-arrow)"></line>
+              <line x1="336" y1="51" x2="356" y2="51" marker-end="url(#flow-arrow)"></line>
+              <line x1="512" y1="51" x2="532" y2="51" marker-end="url(#flow-arrow)"></line>
+              <line x1="688" y1="51" x2="708" y2="51" marker-end="url(#flow-arrow)"></line>
+            </g>
+            <text class="caption" x="440" y="118" text-anchor="middle">boot sequence</text>
+          </svg>
+        </div>
+        <p class="note">The build path is deliberately non-GNU: clang, rustc, ld.lld and LLVM binutils.</p>
+      </section>
+
+      <section class="section" id="userspace" aria-labelledby="user-title">
+        <p class="eyebrow"><span class="num">05</span> Userspace</p>
+        <h2 id="user-title">Everything present is used.</h2>
+        <p class="lede">The installed payload is 7.08&nbsp;MB. This is nearly the complete inventory.</p>
+        <figure class="fetch-terminal" aria-label="Example output from l2fetch">
+          <figcaption><span class="terminal-command"><span class="terminal-prompt">L2#</span> l2fetch</span><span>Example output · values vary by machine</span></figcaption>
+          <div class="terminal-output">
+            <pre class="terminal-logo" role="img" aria-label="L2 ASCII logo">__       _____
+/_/\     /_____/\
+\:\ \    \:::_:\ \
+ \:\ \       _\:\|
+  \:\ \____ /::_/__
+   \:\/___/\\:\____/\
+    \_____\/ \_____\/</pre>
+            <pre class="terminal-info">OS        L2 Linux
+Host      l2
+Kernel    7.2.11
+Init      rcl2 (PID 1)
+Session   live media
+Uptime    3m
+Shell     /bin/dash
+Terminal  linux
+Memory    15.4 MiB / 16.0 MiB
+Disk /    5.2 MB / 64.0 MB
+CPU       QEMU Virtual CPU</pre>
+          </div>
+        </figure>
+        <dl class="inventory">
+          <div><dt>dash</dt><dd>POSIX shell, statically linked.</dd></div>
+          <div><dt>minibox</dt><dd>Core utilities in a single musl-static binary.</dd></div>
+          <div><dt>l2pm</dt><dd>Packages from <code>.l2pm</code> recipes into <code>.l2p</code> archives (newc-cpio + gzip); add, list and remove.</dd></div>
+          <div><dt>l2fetch</dt><dd>System summary with an ASCII logo.</dd></div>
+          <div><dt>mdev</dt><dd>Device management in BusyBox daemon mode.</dd></div>
+          <div><dt>udhcpc</dt><dd>DHCP client, BusyBox applet.</dd></div>
+          <div><dt>storage tools</dt><dd>cfdisk, mke2fs and mkfs.vfat, statically linked.</dd></div>
+          <div><dt>gcompat</dt><dd>glibc compatibility with the musl loader for x86_64 binaries.</dd></div>
+          <div><dt>console shells</dt><dd>One resident shell at boot; a local VT starts on first key press.</dd></div>
+        </dl>
+      </section>
+
+      <section class="section" id="start" aria-labelledby="start-title">
+        <p class="eyebrow"><span class="num">06</span> Getting started</p>
+        <h2 id="start-title">Boot it in a VM.</h2>
+        <p class="lede">Run the launcher from the repository root. QEMU is the supported path; the BIOS profile needs 32&nbsp;MiB and the UEFI profile 128&nbsp;MiB.</p>
+        <div class="code">
+          <pre><code id="cmd-run">bash script/run.sh bios window</code></pre>
+          <button class="copy" type="button" data-copy="cmd-run">Copy</button>
+        </div>
+        <dl class="inventory inventory--compact">
+          <div><dt><code>L2#</code></dt><dd>Resident shell, serial when configured; the local VT starts on first key press.</dd></div>
+          <div><dt><code>poweroff</code></dt><dd>Accepted directly by rcl2.</dd></div>
+          <div><dt><code>l2.rescue=1</code></dt><dd>Kernel flag that opens a rescue shell.</dd></div>
+          <div><dt><code>l2pm help</code></dt><dd>Package manager usage.</dd></div>
+        </dl>
+      </section>
+
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <p class="eyebrow"><span class="num">07</span> FAQ</p>
+        <h2 id="faq-title">Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>Does L2 run on real hardware?</summary>
+            <p>L2 is designed for x86_64 PCs. The live image supports BIOS and UEFI boot and includes an installer for local disks. Hardware compatibility has not yet been tested; boot and installation results so far come from QEMU.</p>
+          </details>
+          <details>
+            <summary>Why is there no glibc?</summary>
+            <p>Native tooling is static musl. glibc-linked x86_64 binaries run through gcompat 1.1.0 with the musl loader; pthread, math and getpwuid usage are verified.</p>
+          </details>
+          <details>
+            <summary>How are packages built and installed?</summary>
+            <p>l2pm consumes <code>.l2pm</code> recipes and produces <code>.l2p</code> archives, which are newc-cpio images compressed with gzip. It can pack, add, list and remove packages.</p>
+          </details>
+          <details>
+            <summary>How much memory should I allocate?</summary>
+            <p>16&nbsp;MiB is enough to boot and leaves under 1&nbsp;MiB for applications. The recommended launcher allocations are 32&nbsp;MiB for BIOS and 128&nbsp;MiB for UEFI.</p>
+          </details>
+          <details>
+            <summary>What happens if the system breaks?</summary>
+            <p>Set <code>l2.rescue=1</code> for a rescue shell. Offline and recovery boot paths are part of the verified checks.</p>
+          </details>
+        </div>
+      </section>
+
+      <footer class="section section--bare end" id="end" aria-labelledby="end-title">
+        <p class="eyebrow"><span class="num">08</span> Colophon</p>
+        <h2 class="end-mark" id="end-title"><img class="footer-logo" src="assets/l2fetch-logo.svg" alt="L2"></h2>
+        <p class="end-tagline">A minimal Linux system, built from scratch.</p>
+        <nav class="end-links" aria-label="Footer">
+          <a href="#top">Back to top</a>
+          <a href="#specification">Specification</a>
+          <a href="#start">Getting started</a>
+        </nav>
+        <p class="colophon">Measurements: QEMU TCG · E1000 · standard VGA · static musl userspace.<br>BIOS/UEFI boot and disk installation are supported; physical hardware compatibility remains unverified. Sources: L2-spec.md and rcl2/README.md.</p>
+      </footer>
+
+    </div>
+  </main>
+
+  <p class="visually-hidden" role="status" id="copyStatus"></p>
+</body>
+</html>
